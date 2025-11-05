@@ -1,0 +1,783 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  password   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+  isActive   Boolean  @default(true)
+  teacher    Teacher?
+  admin      Admin?
+  // สามารถเพิ่ม field อื่นๆ ได้
+}
+
+model Teacher {
+  id             String   @id @default(uuid())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String   @unique
+  prefix         String?
+  firstName      String
+  lastName       String
+  firstNameEn    String?
+  lastNameEn     String?
+  phone          String?
+  birthDate      DateTime?
+  address        String?
+  education      String?
+  experienceYears Int?
+  profileImage   String?
+  department     String
+  position       String
+  isActive       Boolean   @default(true)
+  note           String?
+  updatedAt      DateTime  @default(now()) @updatedAt
+  assignments    TeacherAssignment[]
+  classroomId    String?
+  homeroomClassroom Classroom? @relation(fields: [classroomId], references: [id])
+
+  @@index([classroomId])
+  // Attendance relations
+  schoolAttendances    SchoolAttendance[]
+  // Montessori learned ticks marked by this teacher
+  montessoriMarkedActivityLearned MontessoriActivityLearned[]
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String   @unique
+  prefix       String?
+  firstName    String   @default("admin")
+  lastName     String   @default("admin")
+  firstNameEn  String?
+  lastNameEn   String?
+  employeeCode String   @unique
+  role         String   // เช่น "superadmin", "manager"
+  level        Int
+  isActive     Boolean   @default(true)
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+  // เพิ่ม field เฉพาะของ Admin ได้
+}
+
+
+
+////////////////////////////// Student ///////////////////////////////////////////////////////
+
+
+model Student {
+  id                  String        @id @default(uuid())
+  studentCode         String     @unique  // เลขประจำตัวนักเรียน
+  studentCodeOpec     String?   // เลขประจำตัวนักเรียนระบบสช.
+  idCardNo            String? // เลขบัตรประชาชน
+  prefix              String? // คำนำหน้า
+  firstName           String // ชื่อ
+  lastName            String // สกุล
+  firstNameEn         String?  // ชื่อEnglish
+  lastNameEn          String?  // สกุลEnglish 
+  nickname            String?  // ชื่อเล่น
+  nicknameEn          String?  // ชื่อเล่นEnglish
+  nationality         String?  // สัญชาติ
+  ethnicity           String?  // เชื้อชาติ
+  religion            String?  // ศาสนา
+  birthDate           DateTime? // วันเกิด
+  gender              String? // เพศ
+  addresshomeNo       String?   //บ้านเลขที่
+  addressRoad         String?   // ถนน/ซอย
+  addressMoo          String?   // หมู่ที่
+  addressTambon       String?   // ตำบล/แขวง
+  addressAmphoe        String?   // อำเภอ/เขต
+  addressProvince     String?   // จังหวัด
+  addressPostcode     String?   // รหัสไปรษณีย์
+  previousSchool      String?   // โรงเรียนที่อยู่ก่อนหน้านี้
+  previousSchoolAddressAmphore String?   // อำเภอโรงเรียนที่อยู่ก่อนหน้านี้
+  previousSchoolAddressProvince String?   // จังหวัดโรงเรียนที่อยู่ก่อนหน้านี้
+  previousSchoolReasonMove String?   // เหตุผลที่ย้ายโรงเรียน
+  homePhone           String?   // เบอร์โทรศัพท์บ้าน
+  mobilePhone         String?   // เบอร์โทรศัพท์มือถือ
+  fammilyRelationship String?   // ความสัมพันธ์ผู้ปกครอง
+
+  guardianPrefix       String?   // คำนำหน้าผู้ปกครอง
+  guardianFirstName    String?   // ชื่อผู้ปกครอง
+  guardianLastName     String?   // สกุลผู้ปกครอง
+  guardianNationality  String?   // สัญชาติผู้ปกครอง
+  guardianEthnicity    String?   // เชื้อชาติผู้ปกครอง
+  guardianReligion     String?   // ศาสนาผู้ปกครอง
+  guardianBloodGroup   String?   // กรุ๊ปเลือดผู้ปกครอง
+  guardianIdCardNo     String?   // เลขบัตรประชาชนผู้ปกครอง 
+  guardianWorkplace    String?   // สถานที่ทำงานผู้ปกครอง
+  guardianIncomeRange  String?   // รายได้ต่อเดือนผู้ปกครอง
+  guardianPhone        String?   // เบอร์โทรศัพท์ผู้ปกครอง
+  guardianHomePhone    String?   // เบอร์โทรศัพท์บ้านผู้ปกครอง
+  guardianRelationship String?   // ความสัมพันธ์ผู้ปกครอง
+  guardianAddressHomeNo String?   // ที่อยู่ผู้ปกครอง
+  guardianAddressRoad   String?   // ที่อยู่ผู้ปกครอง
+  guardianAddressMoo   String?   // ที่อยู่ผู้ปกครอง
+  guardianAddressTambon String?   // ที่อยู่ผู้ปกครอง
+  guardianAddressAmphoe String?   // ที่อยู่ผู้ปกครอง
+  guardianAddressProvince String?   // ที่อยู่ผู้ปกครอง
+  guardianAddressPostcode String?   // ที่อยู่ผู้ปกครอง
+  guardianIdCardFileUrl  String?   // สำเนาทะเบียนบัตรประชาชนผู้ปกครอง
+  guardianHouseRegistrationFileUrl String? // สำเนาทะเบียนบ้านผู้ปกครอง
+
+  fatherPrefix         String?   // คำนำหน้าบิดา
+  fatherFirstName      String?   // ชื่อบิดา
+  fatherLastName       String?   // สกุลบิดา
+  fatherNationality    String?   // สัญชาติบิดา
+  fatherEthnicity      String?   // เชื้อชาติบิดา
+  fatherReligion       String?   // ศาสนาบิดา
+  fatherBloodGroup     String?   // กรุ๊ปเลือดบิดา
+  fatherStatus         Boolean?   // มีชีวิตหรือตาย
+  fatherIdCardNo       String?   // เลขบัตรประชาชนบิดา
+  fatherOccupation     String?   // อาชีพบิดา
+  fatherWorkplace      String?   // สถานที่ทำงานบิดา
+  fatherIncomeRange    String?   // รายได้ต่อเดือนบิดา
+  fatherPhone          String?   // เบอร์โทรศัพท์บิดา
+  fatherIdCardFileUrl  String?   // สำเนาทะเบียนบัตรประชาชนบิดา
+  fatherHouseRegistrationFileUrl String? // สำเนาทะเบียนบ้านบิดา
+
+  motherPrefix         String?   // คำนำหน้ามารดา
+  motherFirstName      String?   // ชื่อมารดา
+  motherLastName       String?   // สกุลมารดา
+  motherNationality    String?   // สัญชาติมารดา
+  motherEthnicity      String?   // เชื้อชาติมารดา
+  motherReligion       String?   // ศาสนามารดา
+  motherBloodGroup     String?   // กรุ๊ปเลือดมารดา
+  motherStatus         Boolean?   // มีชีวิตหรือตาย
+  motherIdCardNo       String?   // เลขบัตรประชาชนมารดา
+  motherOccupation     String?   // อาชีพมารดา
+  motherWorkplace      String?   // สถานที่ทำงานมารดา
+  motherIncomeRange    String?   // รายได้ต่อเดือนมารดา
+  motherPhone          String?   // เบอร์โทรศัพท์มารดา
+  motherIdCardFileUrl  String?   // สำเนาทะเบียนบัตรประชาชนมารดา
+  motherHouseRegistrationFileUrl String? // สำเนาทะเบียนบ้านมารดา
+
+  houseRegistrationFileUrl String? // สำเนาทะเบียนบ้าน
+  previousSchoolFileUrl String? // ใบรับรองสถานศึกษาก่อนหน้านี้
+  studentIdCardFileUrl String? //  สำเนาบัตรประชาชน หรือ สูติบัตร
+  profileStudentImageUrl String?  // รูปนักเรียน
+
+
+  studentLevelId       String? // ชั้นเรียน
+  isActive             Boolean    @default(true) // สถานะการเรียน
+  note                 String? // หมายเหตุ
+  createdAt            DateTime   @default(now()) // วันที่สร้าง
+  updatedAt            DateTime   @default(now()) @updatedAt
+  classroomId          String? // ห้องเรียน
+  programEducationId   String? // หลักสูตรการศึกษา
+  
+
+  studentLevel  StudentLevel? @relation(fields: [studentLevelId], references: [id])
+  classroom     Classroom? @relation(fields: [classroomId], references: [id])
+  programEducation ProgramEducation? @relation(fields: [programEducationId], references: [id])
+  enrollments   Enrollment[]
+  studentHealth StudentHealth[]
+  siblingCount Int?
+  siblings Sibling[]
+  assignmentScore AssignmentScore[]
+  // Attendance record relations
+  schoolAttendanceRecords  SchoolAttendanceRecord[]
+  // Montessori learned tick relations
+  montessoriActivityLearned MontessoriActivityLearned[]
+
+  @@index([studentLevelId])
+  @@index([classroomId])
+  @@index([programEducationId])
+}
+
+
+enum SiblingStatus {
+  THIS_SCHOOL
+  OTHER_SCHOOL
+  WORKING
+  UNEMPLOYED
+}
+
+model Sibling {
+  id         String           @id @default(uuid())
+  student    Student       @relation(fields: [studentId], references: [id])
+  studentId  String
+  firstName  String
+  lastName   String
+  status     SiblingStatus
+  schoolName String?
+  updatedAt  DateTime  @default(now()) @updatedAt
+
+  @@index([studentId])
+}
+
+model StudentHealth {
+  id         String      @id @default(uuid())
+  student    Student  @relation(fields: [studentId], references: [id])
+  studentId  String
+  recordDate DateTime
+  height     Float?   //ส่วนสูง
+  weight     Float?   //น้ำหนัก
+  bloodGroup String?  //กรุ๊ปเลือด
+  congenitalDisease String?  //โรคประจำตัว
+  allergy    String?    //แพ้อาหาร/ยาอะไรบ้าง
+  disability String?   // ความพิการ (ถ้ามี)
+  note       String?
+  updatedAt  DateTime  @default(now()) @updatedAt
+
+  @@index([studentId, recordDate])
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+model StudentLevel {
+  id       String       @id @default(uuid())
+  name     String   // ป.1 - ป.6
+  enName   String?  // P1 - P6
+  code     String    @unique
+  order    Int        // ใช้เรียงลำดับ เช่น ป.1 = 1, ป.6 = 6, ม.1 = 7
+  levelId  String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt  
+  level    Level @relation(fields: [levelId], references: [id])
+  students Student[]
+  curriculumSubjects CurriculumSubject[] 
+
+  @@index([levelId])
+}
+
+
+model ProgramEducation {
+  id             String      @id @default(uuid())
+  code           String   @unique
+  name           String
+  enName         String?
+  description    String?
+  students       Student[]
+  classrooms     Classroom[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+
+model Classroom {
+  id        String       @id @default(uuid())
+  code      String    @unique
+  name      String
+  programEducationId String   
+  programEducation ProgramEducation  @relation(fields: [programEducationId], references: [id])
+  students  Student[]
+  homeroomTeachers Teacher[]
+  assignments  TeacherAssignment[]
+  enrollment Enrollment[]
+  updatedAt  DateTime  @default(now()) @updatedAt
+  // Attendance relations
+  schoolAttendances  SchoolAttendance[]
+
+  @@index([programEducationId])
+}
+
+model SubjectType {
+  id          String          @id @default(uuid())
+  code        String          @unique
+  name        String       @unique // เช่น "คณิตศาสตร์"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt 
+  competencies Competency[]
+  schoolSubject SchoolSubject[]
+}
+
+model Level {
+  id          String          @id @default(uuid())
+  code        String?         @unique
+  name        String       // เช่น "ช่วงชั้นที่ 1"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt  
+  competencies Competency[]
+  studentLevels StudentLevel[]
+  montessoriCategories MontessoriCategory[]
+}
+
+model Competency {
+  id            String          @id @default(uuid())
+  code          String          @unique
+  name          String
+  description   String?
+  subjectTypeId String
+  subjectType   SubjectType  @relation(fields: [subjectTypeId], references: [id])
+  levelId       String
+  level         Level        @relation(fields: [levelId],   references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt 
+  assignments   AssignmentCompetency[]
+
+  @@index([subjectTypeId])
+  @@index([levelId])
+}
+
+enum IndicatorType {
+  SCORE        // การเก็บคะแนนระหว่างเรียน
+  MIDTERM      // สอบกลางภาค
+  FINAL        // สอบปลายภาค
+}
+
+enum CommentDirection {
+  EXCELLENT   // 5 = ดีเยี่ยม/เชิงบวกมาก
+  GOOD        // 4 = ดี/เชิงบวก
+  NEUTRAL     // 3 = ปานกลาง/กลางๆ
+  IMPROVE     // 2 = ควรปรับปรุง
+  NEEDS_FIX   // 1 = ต้องแก้ไข/เชิงลบ
+}
+
+model AcademicYear {
+  id        String      @id @default(uuid())
+  year     String   // เช่น "2567"
+  startDate DateTime?
+  endDate   DateTime?
+  terms    Term[]
+  enrollments Enrollment[]
+  assignments  TeacherAssignment[]
+  updatedAt   DateTime @default(now()) @updatedAt
+  // Attendance (daily) in this academic year
+  schoolAttendances SchoolAttendance[]
+}
+
+model Term {
+  id             String          @id @default(uuid())
+  name           String       // เช่น "1", "2", "Summer"
+  academicYearId String
+  startDate      DateTime?
+  endDate        DateTime?
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
+  assignments    TeacherAssignment[]
+  enrollment     Enrollment[]
+  updatedAt      DateTime @default(now()) @updatedAt
+
+  @@index([academicYearId])
+  // Attendance (daily) in this term
+  schoolAttendances SchoolAttendance[]
+}
+
+
+
+//////////////////   Model ที่เกี่ยวกับกับวิชา   //////////////////////////////
+
+model Curriculum {
+  id          String             @id @default(uuid())
+  code        String          @unique
+  name        String
+  description String?
+  SubjectGroups SubjectGroup[]
+  curriculumSubjects CurriculumSubject[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model SubjectGroup {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  enName      String?
+  description String?
+  curriculumId   String
+  curriculum     Curriculum         @relation(fields: [curriculumId], references: [id])
+  curriculumSubjects CurriculumSubject[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([curriculumId])
+}
+
+model CurriculumSubject {
+  id            String           @id @default(uuid())
+  code          String        @unique
+  name          String
+  description   String?
+  credit        Int
+  subjectGroupId String
+  SubjectGroup  SubjectGroup  @relation(fields: [subjectGroupId], references: [id])
+  curriculumId   String
+  curriculum     Curriculum         @relation(fields: [curriculumId], references: [id])
+  schoolSubjects SchoolSubject[]
+  studentLevelId String
+  studentLevel  StudentLevel? @relation(fields: [studentLevelId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([subjectGroupId])
+  @@index([curriculumId])
+  @@index([studentLevelId])
+}
+
+model LearningArea {
+  id            String         @id @default(uuid())
+  code          String         @unique
+  name          String
+  enName        String?
+  description   String?
+ 
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  schoolSubject SchoolSubject[]
+}
+
+enum LearningApproach {
+  TRADITIONAL  // เรียนแบบทั่วไป
+  MONTESSORI   // เรียนแบบมอนเตสซอรี่
+}
+
+model SchoolSubject {
+  id              String           @id @default(uuid())
+  code            String        @unique
+  name            String
+  description     String?
+  curriculumSubjectId String
+  curriculumSubject  CurriculumSubject @relation(fields: [curriculumSubjectId], references: [id])
+  learningAreaId String
+  learningArea LearningArea @relation(fields: [learningAreaId], references: [id])
+  subjectTypeId String
+  subjectType   SubjectType @relation(fields: [subjectTypeId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  assignments  TeacherAssignment[]
+  enrollment Enrollment[]
+  learningApproach LearningApproach
+  // Attendance relations
+  // Montessori content relations
+  montessoriCategories MontessoriCategory[]
+
+  @@index([curriculumSubjectId])
+  @@index([learningAreaId])
+  @@index([subjectTypeId])
+}
+
+
+model TeacherAssignment {
+  id             String           @id @default(uuid())
+  teacherId      String
+  teacher        Teacher       @relation(fields: [teacherId], references: [id])
+  schoolSubjectId String
+  schoolSubject  SchoolSubject @relation(fields: [schoolSubjectId], references: [id])
+  classroomId    String
+  classroom      Classroom     @relation(fields: [classroomId], references: [id])
+  termId         String
+  term           Term           @relation(fields: [termId], references: [id])
+  academicYearId String
+  academicYear   AcademicYear   @relation(fields: [academicYearId], references: [id])
+  note           String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt 
+
+  assignment Assignment[]
+
+  @@unique([teacherId, schoolSubjectId, classroomId, termId, academicYearId]) // ป้องกันการมอบหมายซ้ำ
+  @@index([teacherId])
+  @@index([schoolSubjectId])
+  @@index([classroomId])
+  @@index([termId])
+  @@index([academicYearId])
+}
+
+
+model Enrollment {
+  id              String        @id @default(uuid())
+  studentId       String
+  student         Student       @relation(fields: [studentId], references: [id])
+  schoolSubjectId String
+  schoolSubject   SchoolSubject @relation(fields: [schoolSubjectId], references: [id])
+  classroomId     String
+  classroom       Classroom     @relation(fields: [classroomId], references: [id])
+  termId          String
+  term            Term          @relation(fields: [termId], references: [id])
+  academicYearId  String
+  academicYear    AcademicYear  @relation(fields: [academicYearId], references: [id])
+  enrolledAt      DateTime      @default(now())
+  grade           String?
+  isCompleted     Boolean?  // สถานะการเรียนรู้
+  completedAt     DateTime?
+  note            String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  @@unique([studentId, schoolSubjectId, termId, academicYearId]) // ป้องกันการลงทะเบียนซ้ำ
+  @@index([studentId])
+  @@index([schoolSubjectId])
+  @@index([classroomId])
+  @@index([termId])
+  @@index([academicYearId])
+}
+
+enum scoreType {
+  SCORE        // การเก็บคะแนนระหว่างเรียน
+  MIDTERM      // สอบกลางภาค
+  FINAL        // สอบปลายภาค
+}
+
+model Assignment {
+  id                  String                @id @default(uuid())
+  teacherAssignmentId String
+  teacherAssignment   TeacherAssignment  @relation(fields: [teacherAssignmentId], references: [id])
+  code                String              @unique
+  title               String
+  description         String?
+  scoreType           scoreType
+  maxScore            Int
+  createdAt           DateTime           @default(now())
+  attempts            AssignmentScoreAttempt[]
+  competencies        AssignmentCompetency[]
+  updatedAt           DateTime           @default(now()) @updatedAt
+
+  @@index([teacherAssignmentId])
+}
+
+model AssignmentScoreAttempt {
+  id           String        @id @default(uuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  attemptNo    Int        // ครั้งที่ (1, 2, 3, ...)
+  name         String?    // ชื่อรอบ เช่น "รอบแรก", "สอบซ่อม"
+  scores       AssignmentScore[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @default(now()) @updatedAt
+
+  @@index([assignmentId])
+}
+
+model AssignmentScore {
+  id           String        @id @default(uuid())
+  assignmentScoreAttemptId String
+  assignmentScoreAttempt   AssignmentScoreAttempt @relation(fields: [assignmentScoreAttemptId], references: [id])
+  studentId    String
+  student      Student    @relation(fields: [studentId], references: [id])
+  score        Int
+  comment      String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @default(now()) @updatedAt
+
+  assignmentScoreFiles AssignmentScoreFile[]
+
+  @@index([assignmentScoreAttemptId])
+  @@index([studentId])
+}
+
+model AssignmentScoreFile {
+  id                       String                    @id @default(uuid())
+  fileUrl                  String                 // URL ของไฟล์ (รูปหรือ PDF)
+  fileType                 String                 // เช่น 'image/jpeg', 'application/pdf'
+  createdAt                DateTime               @default(now())
+  AssignmentScoreId        String 
+  assignmentScore          AssignmentScore  @relation(fields: [AssignmentScoreId], references: [id])
+  updatedAt                DateTime               @default(now()) @updatedAt
+
+  @@index([AssignmentScoreId])
+}
+
+model AssignmentCompetency {
+  id            String         @id @default(uuid())
+  assignmentId  String
+  competencyId  String
+  assignment    Assignment  @relation(fields: [assignmentId], references: [id])
+  competency    Competency  @relation(fields: [competencyId], references: [id])
+  updatedAt     DateTime    @default(now()) @updatedAt
+
+  @@unique([assignmentId, competencyId]) // ป้องกันซ้ำ
+  @@index([assignmentId])
+  @@index([competencyId])
+}
+
+// ============== Attendance (เช็คชื่อ) ==============
+
+enum AttendanceSession {
+  MORNING
+  AFTERNOON
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  LEAVE
+}
+
+// เช็คชื่อมาโรงเรียน (เช้า/เย็น) ระดับห้องเรียน
+model SchoolAttendance {
+  id           String    @id @default(uuid())
+  date         DateTime
+  session      AttendanceSession
+
+  classroomId  String
+  classroom    Classroom @relation(fields: [classroomId], references: [id])
+
+  teacherId    String
+  teacher      Teacher   @relation(fields: [teacherId], references: [id])
+
+  academicYearId String
+  academicYear   AcademicYear @relation(fields: [academicYearId], references: [id])
+  termId         String
+  term           Term         @relation(fields: [termId], references: [id])
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+
+  records      SchoolAttendanceRecord[]
+
+  // ป้องกันการบันทึกซ้ำห้อง/รอบ/วันเดียวกัน
+  @@unique([date, session, classroomId])
+  @@index([classroomId])
+  @@index([teacherId])
+  @@index([date])
+  @@index([academicYearId])
+  @@index([termId])
+}
+
+model SchoolAttendanceRecord {
+  id                 String    @id @default(uuid())
+  schoolAttendanceId String
+  schoolAttendance   SchoolAttendance @relation(fields: [schoolAttendanceId], references: [id])
+
+  studentId          String
+  student            Student   @relation(fields: [studentId], references: [id])
+
+  status             AttendanceStatus
+  remark             String?
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @default(now()) @updatedAt
+
+  // นักเรียน 1 คนมี 1 record ต่อการเช็คชื่อครั้งนั้น
+  @@unique([schoolAttendanceId, studentId])
+  @@index([studentId])
+}
+
+// ===================== Montessori Content Structure =====================
+
+// 1) Category under a Montessori SchoolSubject
+model MontessoriCategory {
+  id              String        @id @default(uuid())
+  // Many-to-many: a category can belong to multiple school subjects
+  schoolSubjects  SchoolSubject[]
+  levelId         String?
+  level           Level?        @relation(fields: [levelId], references: [id])
+
+  code        String
+  order       Int?   // ใช้เรียงลำดับ
+  name        String
+  enName      String?
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  subcategories MontessoriSubcategory[]
+  // Note: previously code was unique per (schoolSubjectId, code). With M:N this
+  // cross-table uniqueness cannot be enforced at DB level implicitly.
+  // Consider enforcing per-subject code uniqueness at application level if needed.
+}
+
+// 2) Subcategory under Category
+model MontessoriSubcategory {
+  id          String              @id @default(uuid())
+  categoryId  String
+  category    MontessoriCategory  @relation(fields: [categoryId], references: [id])
+
+  code        String
+  order       Int?   // ใช้เรียงลำดับ
+  name        String
+  enName      String?
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  topics      MontessoriTopic[]
+
+  @@unique([categoryId, code])
+  @@index([categoryId])
+}
+
+// 3) Topic under Subcategory
+model MontessoriTopic {
+  id             String                 @id @default(uuid())
+  subcategoryId  String
+  subcategory    MontessoriSubcategory  @relation(fields: [subcategoryId], references: [id])
+
+  code        String
+  order       Int?   // ใช้เรียงลำดับ
+  name        String
+  enName      String?
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+
+  activities  MontessoriActivity[]
+
+  @@unique([subcategoryId, code])
+  @@index([subcategoryId])
+}
+
+// 4) Activity (บทเรียนย่อย) under Topic
+model MontessoriActivity {
+  id               String          @id @default(uuid())
+  topicId          String
+  topic            MontessoriTopic @relation(fields: [topicId], references: [id])
+
+  code             String
+  order            Int?   // ใช้เรียงลำดับ
+  name             String
+  enName           String?
+  description      String?
+  materialNotes    String?
+  isActive         Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @default(now()) @updatedAt
+
+  learnedRecords   MontessoriActivityLearned[]
+
+  @@unique([topicId, code])
+  @@index([topicId])
+}
+
+// 5) Learned tick per Student x Activity (global latest)
+model MontessoriActivityLearned {
+  id                  String     @id @default(uuid())
+
+  studentId           String
+  student             Student    @relation(fields: [studentId], references: [id])
+
+  activityId          String
+  activity            MontessoriActivity @relation(fields: [activityId], references: [id])
+
+  learned             Boolean
+  learnedAt           DateTime?
+  note                String?
+
+  markedByTeacherId   String?
+  markedByTeacher     Teacher?   @relation(fields: [markedByTeacherId], references: [id])
+
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @default(now()) @updatedAt
+
+  @@unique([studentId, activityId])
+  @@index([studentId])
+  @@index([activityId])
+  @@index([learned])
+}
+
+
+
+
+
