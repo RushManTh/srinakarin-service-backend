@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/
 USER bun
 
 # Install dependencies (cache-friendly)
-COPY package.json ./
-COPY bun.lock ./
+COPY package.json .
+COPY bun.lockb .
 
 RUN bun install
 
@@ -17,7 +17,7 @@ RUN bun install
 COPY prisma ./prisma
 
 # Copy application source
-COPY tsconfig.json ./
+COPY tsconfig.json .
 COPY src ./src
 
 # Ensure public uploads exists (mounted as volume at runtime)
