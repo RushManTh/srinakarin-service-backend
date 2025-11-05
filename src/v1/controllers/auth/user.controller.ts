@@ -36,6 +36,10 @@ export const loginUserController = async (ctx: Context) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // ✅ HTTPS only in production
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      domain:
+        process.env.NODE_ENV === "production"
+          ? ".beachforlife.org"
+          : "localhost",
       path: "/",
       maxAge: 7 * 86400, // 7 days
     });
@@ -54,6 +58,8 @@ export const logoutUserController = async (ctx: Context) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    domain:
+      process.env.NODE_ENV === "production" ? ".beachforlife.org" : "localhost",
     path: "/",
     expires: new Date(0),
   });
