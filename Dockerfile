@@ -10,7 +10,7 @@ USER bun
 # Install dependencies (cache-friendly)
 COPY package.json ./
 COPY bun.lock* ./
-RUN bun install --production
+RUN bun install --no-save
 
 # Copy Prisma schema and migrations first
 COPY prisma ./prisma
