@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies (cache-friendly)
 COPY package.json ./
-COPY bun.lockb ./
+COPY bun.lock ./
 RUN bun install --ci
 
 # Copy Prisma schema and migrations first
