@@ -35,7 +35,7 @@ export const loginUserController = async (ctx: Context) => {
       value: authToken,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // ✅ HTTPS only in production
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
       maxAge: 7 * 86400, // 7 days
     });
@@ -53,7 +53,7 @@ export const logoutUserController = async (ctx: Context) => {
     value: "",
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/",
     expires: new Date(0),
   });
