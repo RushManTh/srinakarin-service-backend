@@ -11,7 +11,7 @@ USER bun
 COPY package.json ./
 COPY bun.lock ./
 
-RUN bun install --force
+RUN bun install
 
 # Copy Prisma schema and migrations first
 COPY prisma ./prisma
