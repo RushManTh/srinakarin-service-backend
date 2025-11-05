@@ -34,10 +34,10 @@ export const loginUserController = async (ctx: Context) => {
     ctx.cookie.token.set({
       value: authToken,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production", // ✅ HTTPS only in production
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
       path: "/",
-      maxAge: 7 * 86400,
+      maxAge: 7 * 86400, // 7 days
     });
 
     ctx.set.status = 200;
@@ -53,7 +53,7 @@ export const logoutUserController = async (ctx: Context) => {
     value: "",
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
     path: "/",
     expires: new Date(0),
   });
