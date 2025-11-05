@@ -12,6 +12,12 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
     ports:
-      - "3001:3001"
+      - "${APP_PORT:-3001}:3001"
     volumes:
       - ./public/uploads:/app/public/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/v1/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

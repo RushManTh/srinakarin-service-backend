@@ -22,3 +22,5 @@ dist
 .DS_Store
 package-lock.json
 src/generated/prisma
+public/uploads/*
+!public/uploads/.gitkeep
