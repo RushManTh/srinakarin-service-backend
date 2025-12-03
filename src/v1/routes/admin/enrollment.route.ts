@@ -6,6 +6,7 @@ import {
   updateEnrollmentController,
   deleteEnrollmentController,
 } from "../../controllers/admin/enrollment.controller";
+import { bulkCreateEnrollmentsController } from "../../controllers/admin/enrollment.controller";
 
 export const enrollmentRoutes = new Elysia({ prefix: "/enrollments" })
   .get("/", listEnrollmentsController, {
@@ -32,6 +33,22 @@ export const enrollmentRoutes = new Elysia({ prefix: "/enrollments" })
     }),
     tags: ["Enrollment (AdminRoutes)"],
     summary: "สร้างการลงทะเบียน (Enrollment)",
+  })
+  .post("/bulk-create", bulkCreateEnrollmentsController, {
+    body: t.Object({
+      studentIds: t.Array(t.String({ minLength: 1 }), { minItems: 1 }),
+      schoolSubjectId: t.String(),
+      classroomId: t.String(),
+      termId: t.String(),
+      academicYearId: t.String(),
+      enrolledAt: t.Optional(t.String()),
+      grade: t.Optional(t.String()),
+      isCompleted: t.Optional(t.Boolean()),
+      completedAt: t.Optional(t.String()),
+      note: t.Optional(t.String()),
+    }),
+    tags: ["Enrollment (AdminRoutes)"],
+    summary: "ลงทะเบียนนักเรียนหลายคนพร้อมกัน (Bulk Create)",
   })
   .patch("/update/:id", updateEnrollmentController, {
     params: t.Object({ id: t.String() }),

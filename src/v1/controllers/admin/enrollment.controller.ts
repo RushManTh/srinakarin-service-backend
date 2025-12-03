@@ -6,6 +6,7 @@ import {
   updateEnrollment,
   deleteEnrollment,
 } from "../../services/admin/enrollment.service";
+import { bulkCreateEnrollments } from "../../services/admin/enrollment.service";
 
 export const listEnrollmentsController = async (ctx: Context) => {
   try {
@@ -58,6 +59,18 @@ export const deleteEnrollmentController = async (ctx: Context) => {
     const id = ctx.params.id;
     await deleteEnrollment(id);
     return { message: "Enrollment deleted" };
+  } catch (e: any) {
+    ctx.set.status = 400;
+    return { error: e.message };
+  }
+};
+
+export const bulkCreateEnrollmentsController = async (ctx: Context) => {
+  try {
+    const body = ctx.body as any;
+    const result = await bulkCreateEnrollments(body);
+    ctx.set.status = 201;
+    return result;
   } catch (e: any) {
     ctx.set.status = 400;
     return { error: e.message };

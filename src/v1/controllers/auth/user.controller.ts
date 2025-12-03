@@ -36,7 +36,7 @@ export const loginUserController = async (ctx: Context) => {
       httpOnly: true,
       domain:
         process.env.NODE_ENV === "production"
-          ? ".beachforlife.org"
+          ? ".srinakarin.ac.th"
           : "localhost",
       secure: process.env.NODE_ENV === "production", // ✅ HTTPS only in production
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
@@ -56,7 +56,7 @@ export const logoutUserController = async (ctx: Context) => {
   ctx.cookie.token.set({
     value: "",
     domain:
-      process.env.NODE_ENV === "production" ? ".beachforlife.org" : "localhost",
+      process.env.NODE_ENV === "production" ? ".srinakarin.ac.th" : "localhost",
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",

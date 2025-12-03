@@ -2,7 +2,10 @@ import { prisma } from "../../models/prisma";
 
 // List all academic years
 export async function listAcademicYears() {
-  return prisma.academicYear.findMany();
+  return prisma.academicYear.findMany({
+    include: { terms: true },
+    orderBy: { startDate: "desc" },
+  });
 }
 
 // Get academic year by ID
