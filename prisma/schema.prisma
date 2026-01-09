@@ -256,6 +256,7 @@ model StudentLevel {
   level    Level @relation(fields: [levelId], references: [id])
   students Student[]
   curriculumSubjects CurriculumSubject[] 
+  // Removed relation to CoreCompetency per new design
 
   @@index([levelId])
 }
@@ -310,6 +311,9 @@ model Level {
   competencies Competency[]
   studentLevels StudentLevel[]
   montessoriCategories MontessoriCategory[]
+  // Removed relation to CoreCompetency per new design
+  coreCompetencyLevels CoreCompetencyLevel[]
+  coreCompetencyLearningAreaWeights CoreCompetencyLearningAreaWeight[]
 }
 
 model Competency {
@@ -324,8 +328,67 @@ model Competency {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt 
   assignments   AssignmentCompetency[]
+  coreCompetencies CoreCompetency[]
 
   @@index([subjectTypeId])
+  @@index([levelId])
+}
+
+model CoreCompetency {
+  id           String      @id @default(uuid())
+  code         String?     @unique
+  name         String
+  description  String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  coreLevels    CoreCompetencyLevel[]
+  competencies  Competency[]
+  learningAreaWeights CoreCompetencyLearningAreaWeight[]
+}
+
+// ระดับของสมรรถนะหลัก (เช่น 1..4 พร้อมคำนิยามและช่วงคะแนน)
+// รองรับการมี level เดียวกัน (เช่น level 3) แต่ต่าง levelId (ช่วงชั้น)
+// ตัวอย่าง: ป.1-3 มี level 1-4, ป.4-6 มี level 3-6 (level 3,4 ซ้ำกันได้แต่ต่างช่วงชั้น)
+model CoreCompetencyLevel {
+  id                String          @id @default(uuid())
+  coreCompetencyId  String
+  coreCompetency    CoreCompetency  @relation(fields: [coreCompetencyId], references: [id])
+  level             Int             // ระดับที่เท่าไร (1..N)
+  name              String          // ชื่อระดับ เช่น พื้นฐาน/ดี/ดีมาก
+  description       String?
+  minScore          Float           // คะแนนขั้นต่ำของระดับนี้ (0-100)
+  maxScore          Float           // คะแนนสูงสุดของระดับนี้ (0-100)
+  order             Int?            // ใช้เรียงลำดับแสดงผล
+  // Single Level relation (choose only one Level)
+  levelId           String
+  levelRef          Level           @relation(fields: [levelId], references: [id])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @default(now()) @updatedAt
+
+  @@unique([coreCompetencyId, level, levelId])
+  @@index([coreCompetencyId])
+  @@index([levelId])
+  @@index([coreCompetencyId, levelId])
+}
+
+// น้ำหนักของสมรรถนะหลักต่อกลุ่มสาระการเรียนรู้
+model CoreCompetencyLearningAreaWeight {
+  id               String         @id @default(uuid())
+  coreCompetencyId String
+  coreCompetency   CoreCompetency @relation(fields: [coreCompetencyId], references: [id])
+  learningAreaId   String
+  learningArea     LearningArea   @relation(fields: [learningAreaId], references: [id])
+  weight           Float          // สัดส่วน 0.0-1.0 (เช่น 0.3 = 30%)
+  levelId          String?        // optional: กำหนดต่างกันตามช่วงชั้น
+  level            Level?         @relation(fields: [levelId], references: [id])
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @default(now()) @updatedAt
+
+  @@unique([coreCompetencyId, learningAreaId, levelId])
+  @@index([coreCompetencyId])
+  @@index([learningAreaId])
   @@index([levelId])
 }
 
@@ -434,6 +497,7 @@ model LearningArea {
   updatedAt     DateTime @updatedAt
 
   schoolSubject SchoolSubject[]
+  coreCompetencyWeights CoreCompetencyLearningAreaWeight[]
 }
 
 enum LearningApproach {

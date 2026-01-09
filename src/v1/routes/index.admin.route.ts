@@ -29,6 +29,12 @@ import { montessoriSubcategoryRoutes } from "./admin/montessoriSubcategory.route
 import { montessoriTopicRoutes } from "./admin/montessoriTopic.route";
 import { montessoriActivityRoutes } from "./admin/montessoriActivity.route";
 import { montessoriActivityLearnedRoutes } from "./admin/montessoriActivityLearned.route";
+import { coreCompetencyRoute } from "./admin/coreCompetency.route";
+import { coreCompetencyLevelRoute } from "./admin/coreCompetencyLevel.route";
+import { coreCompetencyMappingRoute } from "./admin/coreCompetencyMapping.route";
+import { coreCompetencyWeightRoute } from "./admin/coreCompetencyWeight.route";
+import { coreCompetencyScoreRoute } from "./admin/coreCompetencyScore.route";
+import { dashboardRoute } from "./admin/dashboard.route";
 
 export const indexAdminRoutes = new Elysia({ prefix: "/admin" }).guard(
   { beforeHandle: requirePermission(["admin"]) },
@@ -63,4 +69,10 @@ export const indexAdminRoutes = new Elysia({ prefix: "/admin" }).guard(
       .use(montessoriTopicRoutes)
       .use(montessoriActivityRoutes)
       .use(montessoriActivityLearnedRoutes)
+      .use(coreCompetencyRoute)
+      .use(coreCompetencyLevelRoute)
+      .use(coreCompetencyMappingRoute)
+      .use(coreCompetencyWeightRoute)
+      .use(coreCompetencyScoreRoute)
+      .use(dashboardRoute)
 );

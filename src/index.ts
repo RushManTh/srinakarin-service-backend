@@ -60,12 +60,12 @@ const app = new Elysia()
             description: "การจัดการห้องเรียน (สำหรับ Teacher)",
           },
           {
-            name: "Subject (AdminRoutes)",
-            description: "การจัดการวิชา (สำหรับ Admin)",
-          },
-          {
             name: "Subject (TeacherRoutes)",
             description: "การจัดการวิชา (สำหรับ Teacher)",
+          },
+          {
+            name: "CoreCompetency (AdminRoutes)",
+            description: "การจัดการสมรรถนะหลัก (สำหรับ Admin)",
           },
           {
             name: "Competency (AdminRoutes)",
@@ -100,10 +100,6 @@ const app = new Elysia()
             description: "การจัดการการลงทะเบียน (สำหรับ Teacher)",
           },
           {
-            name: "SubjectIndicator (AdminRoutes)",
-            description: "การจัดการตัวชี้วัด (สำหรับ Admin)",
-          },
-          {
             name: "SubjectIndicator (TeacherRoutes)",
             description: "การจัดการตัวชี้วัด (สำหรับ Teacher)",
           },
@@ -124,16 +120,8 @@ const app = new Elysia()
             description: "การจัดการเทอม (สำหรับ Teacher)",
           },
           {
-            name: "Score (AdminRoutes)",
-            description: "การจัดการคะแนน (สำหรับ Admin)",
-          },
-          {
             name: "Score (TeacherRoutes)",
             description: "การจัดการคะแนน (สำหรับ Teacher)",
-          },
-          {
-            name: "ScoreFile (AdminRoutes)",
-            description: "การจัดการไฟล์แนบคะแนน (สำหรับ Admin)",
           },
           {
             name: "ScoreFile (TeacherRoutes)",
@@ -158,10 +146,6 @@ const app = new Elysia()
           {
             name: "LearningArea (TeacherRoutes)",
             description: "การจัดการพื้นที่เรียนรู้ (สำหรับ Teacher)",
-          },
-          {
-            name: "SubjectAssignment (AdminRoutes)",
-            description: "การจัดการมอบหมายวิชา (สำหรับ Admin)",
           },
           {
             name: "AssignmentScoreFile (AdminRoutes)",
