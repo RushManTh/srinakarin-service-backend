@@ -5,6 +5,8 @@ import {
   createAssignmentScore,
   updateAssignmentScore,
   deleteAssignmentScore,
+  getStudentScoresBySubjectGroupedByCompetency,
+  getStudentAssignmentScoresBySubject,
 } from "../../services/admin/assignmentScore.service";
 
 export const listAssignmentScoresController = async (ctx: Context) => {
@@ -58,6 +60,42 @@ export const deleteAssignmentScoreController = async (ctx: Context) => {
     const id = ctx.params.id;
     await deleteAssignmentScore(id);
     return { message: "AssignmentScore deleted" };
+  } catch (e: any) {
+    ctx.set.status = 400;
+    return { error: e.message };
+  }
+};
+
+export const getStudentScoresBySubjectGroupedByCompetencyController = async (
+  ctx: Context
+) => {
+  try {
+    const studentId = ctx.params.studentId;
+    const schoolSubjectId = ctx.params.schoolSubjectId;
+    const { academicYearId, termId } = ctx.query;
+    return await getStudentScoresBySubjectGroupedByCompetency(
+      studentId,
+      schoolSubjectId,
+      { academicYearId, termId }
+    );
+  } catch (e: any) {
+    ctx.set.status = 400;
+    return { error: e.message };
+  }
+};
+
+export const getStudentAssignmentScoresBySubjectController = async (
+  ctx: Context
+) => {
+  try {
+    const studentId = ctx.params.studentId;
+    const schoolSubjectId = ctx.params.schoolSubjectId;
+    const { academicYearId, termId } = ctx.query;
+    return await getStudentAssignmentScoresBySubject(
+      studentId,
+      schoolSubjectId,
+      { academicYearId, termId }
+    );
   } catch (e: any) {
     ctx.set.status = 400;
     return { error: e.message };

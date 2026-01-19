@@ -80,10 +80,25 @@ export async function deleteStudent(id: string) {
 }
 
 // List enrollments for a student
-export async function listStudentEnrollments(id: string) {
+export async function listStudentEnrollments(
+  id: string,
+  filters?: { academicYearId?: string; termId?: string }
+) {
+  const where: any = { studentId: id };
+  if (filters?.academicYearId) {
+    where.academicYearId = filters.academicYearId;
+  }
+  if (filters?.termId) {
+    where.termId = filters.termId;
+  }
   return prisma.enrollment.findMany({
-    where: { studentId: id },
-    include: { schoolSubject: true },
+    where,
+    include: {
+      schoolSubject: true,
+      classroom: true,
+      term: true,
+      academicYear: true,
+    },
   });
 }
 

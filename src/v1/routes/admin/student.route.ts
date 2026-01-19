@@ -227,8 +227,12 @@ export const studentRoutes = new Elysia({ prefix: "/students" })
   })
   .get("/:id/enrollments", listStudentEnrollmentsController, {
     params: t.Object({ id: t.String() }),
+    query: t.Object({
+      academicYearId: t.Optional(t.String()),
+      termId: t.Optional(t.String()),
+    }),
     tags: ["Student (AdminRoutes)"],
-    summary: "ดูวิชาที่นักเรียนลงทะเบียน",
+    summary: "ดูวิชาที่นักเรียนลงทะเบียน (สามารถกรองตามปีการศึกษาและเทอมได้)",
   })
   .get("/:id/subjects", listStudentSubjectsController, {
     params: t.Object({ id: t.String() }),

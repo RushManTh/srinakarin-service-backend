@@ -5,6 +5,8 @@ import {
   createAssignmentController,
   updateAssignmentController,
   deleteAssignmentController,
+  listAssignmentsBySubjectController,
+  listAssignmentsByTeacherAssignmentController,
 } from "../../controllers/admin/assignment.controller";
 import { scoreType } from "../../../generated/prisma";
 
@@ -47,4 +49,26 @@ export const assignmentRoutes = new Elysia({ prefix: "/assignments" })
     params: t.Object({ id: t.String() }),
     tags: ["Assignment (AdminRoutes)"],
     summary: "ลบงานที่มอบหมาย (Assignment)",
-  });
+  })
+  .get("/by-subject", listAssignmentsBySubjectController, {
+    query: t.Object({
+      schoolSubjectId: t.Optional(t.String()),
+      teacherId: t.Optional(t.String()),
+      academicYearId: t.Optional(t.String()),
+      termId: t.Optional(t.String()),
+      classroomId: t.Optional(t.String()),
+    }),
+    tags: ["Assignment (AdminRoutes)"],
+    summary:
+      "ดูรายการ Assignment ตามวิชา (สามารถกรองตามครู, ปีการศึกษา, เทอม, ห้องเรียนได้)",
+  })
+  .get(
+    "/teacher-assignment/:teacherAssignmentId",
+    listAssignmentsByTeacherAssignmentController,
+    {
+      params: t.Object({ teacherAssignmentId: t.String() }),
+      tags: ["Assignment (AdminRoutes)"],
+      summary:
+        "ดูรายการ Assignment ตาม TeacherAssignment (การมอบหมายของครูในวิชา ห้องเรียน เทอม และปีการศึกษาที่เจาะจง)",
+    }
+  );

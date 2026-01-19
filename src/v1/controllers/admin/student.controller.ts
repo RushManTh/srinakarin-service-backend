@@ -92,7 +92,8 @@ export const deleteStudentController = async (ctx: Context) => {
 export const listStudentEnrollmentsController = async (ctx: Context) => {
   try {
     const id = ctx.params.id;
-    return await listStudentEnrollments(id);
+    const { academicYearId, termId } = ctx.query;
+    return await listStudentEnrollments(id, { academicYearId, termId });
   } catch (e: any) {
     ctx.set.status = 400;
     return { error: e.message };
