@@ -4,7 +4,11 @@ import { prisma } from "../../models/prisma";
 export async function listSubjectTypes() {
   return prisma.subjectType.findMany({
     include: {
-      competencies: true,
+      competencies: {
+        include: {
+          coreCompetencies: true,
+        },
+      },
     },
   });
 }
@@ -13,6 +17,16 @@ export async function listSubjectTypes() {
 export async function getSubjectTypeById(id: string) {
   return prisma.subjectType.findUnique({
     where: { id },
-    include: { schoolSubject: true, competencies: true },
+    include: {
+      schoolSubject: true,
+      competencies: {
+        include: {
+          coreCompetencies: {
+            orderBy: { code: "asc" },
+          },
+        },
+        orderBy: { code: "asc" },
+      },
+    },
   });
 }

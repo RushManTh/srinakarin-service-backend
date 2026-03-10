@@ -193,6 +193,8 @@ model Student {
   assignmentScore AssignmentScore[]
   // Attendance record relations
   schoolAttendanceRecords  SchoolAttendanceRecord[]
+  // Kiosk attendance log relations
+  kioskAttendanceLogs      KioskAttendanceLog[]
   // Montessori learned tick relations
   montessoriActivityLearned MontessoriActivityLearned[]
 
@@ -416,7 +418,8 @@ model AcademicYear {
   assignments  TeacherAssignment[]
   updatedAt   DateTime @default(now()) @updatedAt
   // Attendance (daily) in this academic year
-  schoolAttendances SchoolAttendance[]
+  schoolAttendances    SchoolAttendance[]
+  kioskAttendanceLogs  KioskAttendanceLog[]
 }
 
 model Term {
@@ -432,7 +435,8 @@ model Term {
 
   @@index([academicYearId])
   // Attendance (daily) in this term
-  schoolAttendances SchoolAttendance[]
+  schoolAttendances    SchoolAttendance[]
+  kioskAttendanceLogs  KioskAttendanceLog[]
 }
 
 
@@ -677,6 +681,11 @@ enum AttendanceStatus {
   LEAVE
 }
 
+enum KioskEventType {
+  CHECK_IN
+  CHECK_OUT
+}
+
 // เช็คชื่อมาโรงเรียน (เช้า/เย็น) ระดับห้องเรียน
 model SchoolAttendance {
   id           String    @id @default(uuid())
@@ -841,7 +850,28 @@ model MontessoriActivityLearned {
   @@index([learned])
 }
 
+// ============== Kiosk Attendance (ตู้เช็คชื่อ) ==============
 
+/// บันทึก log การแตะบัตรเข้า/ออกจากตู้เช็คชื่ออัตโนมัติ
+model KioskAttendanceLog {
+  id             String         @id @default(uuid())
+  studentId      String
+  student        Student        @relation(fields: [studentId], references: [id])
+  eventType      KioskEventType
+  eventTime      DateTime       @default(now())
+  photoPath      String?        // relative URL เช่น /uploads/kiosk/<studentId>/attendance/<file>
+  academicYearId String
+  academicYear   AcademicYear   @relation(fields: [academicYearId], references: [id])
+  termId         String
+  term           Term           @relation(fields: [termId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now()) @updatedAt
+
+  @@index([studentId, eventTime])
+  @@index([academicYearId, termId, eventTime])
+  @@index([studentId])
+  @@index([termId])
+}
 
 
 

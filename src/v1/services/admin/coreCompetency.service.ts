@@ -21,7 +21,7 @@ export async function listCoreCompetencies({
         competencies: true,
       },
       orderBy: {
-        name: "asc",
+        code: "asc",
       },
     }),
     prisma.coreCompetency.count({ where }),

@@ -6,6 +6,8 @@ import {
   getScoreHistory,
   calculateAllStudentScores,
   getAllStudentScores,
+  calculateClassroomAllScores,
+  getClassroomAllScores,
 } from "../../controllers/admin/coreCompetencyScore.controller";
 
 export const coreCompetencyScoreRoute = new Elysia({
@@ -73,4 +75,14 @@ export const coreCompetencyScoreRoute = new Elysia({
     }),
     tags: ["CoreCompetencyScore (AdminRoutes)"],
     summary: "ดึงคะแนนสมรรถนะหลักทั้งหมดของนักเรียน",
+  })
+  .get("/classroom/:classroomId/all-competencies", getClassroomAllScores, {
+    params: t.Object({ classroomId: t.String() }),
+    query: t.Object({
+      academicYearId: t.String(),
+      termId: t.String(),
+      levelId: t.String(),
+    }),
+    tags: ["CoreCompetencyScore (AdminRoutes)"],
+    summary: "ดึงคะแนนสมรรถนะหลักทั้งหมดของนักเรียนทั้งห้อง",
   });

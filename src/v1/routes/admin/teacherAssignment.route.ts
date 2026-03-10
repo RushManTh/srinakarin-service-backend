@@ -11,6 +11,10 @@ export const teacherAssignmentRoutes = new Elysia({
   prefix: "/teacher-assignments",
 })
   .get("/", listTeacherAssignmentsController, {
+    query: t.Object({
+      page: t.Optional(t.String()),
+      pageSize: t.Optional(t.String()),
+    }),
     tags: ["TeacherAssignment (AdminRoutes)"],
     summary: "รายการมอบหมายครู (Teacher Assignment)",
   })

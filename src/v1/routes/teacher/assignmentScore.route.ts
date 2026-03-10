@@ -8,6 +8,7 @@ import {
   listAssignmentScoresByCompetencyController,
   getStudentScoresBySubjectGroupedByCompetencyController,
   getStudentAssignmentScoresByTeacherAssignmentController,
+  bulkCreateAssignmentScoresController,
 } from "../../controllers/teacher/assignmentScore.controller";
 
 export const assignmentScoreRoutes = new Elysia({
@@ -31,6 +32,20 @@ export const assignmentScoreRoutes = new Elysia({
     }),
     tags: ["AssignmentScore (TeacherRoutes)"],
     summary: "สร้างคะแนนงาน (AssignmentScore)",
+  })
+  .post("/bulk-create", bulkCreateAssignmentScoresController, {
+    body: t.Object({
+      assignmentScoreAttemptId: t.String(),
+      scores: t.Array(
+        t.Object({
+          studentId: t.String(),
+          score: t.Number(),
+          comment: t.String(),
+        }),
+      ),
+    }),
+    tags: ["AssignmentScore (TeacherRoutes)"],
+    summary: "ลงคะแนนนักเรียนหลายคนพร้อมกัน (Bulk Create)",
   })
   .patch("/update/:id", updateAssignmentScoreController, {
     params: t.Object({ id: t.String() }),
@@ -57,7 +72,7 @@ export const assignmentScoreRoutes = new Elysia({
       params: t.Object({ competencyId: t.String() }),
       tags: ["AssignmentScore (TeacherRoutes)"],
       summary: "ดูคะแนนงานทั้งหมดที่เกี่ยวกับ competencyId",
-    }
+    },
   )
 
   // Route สำหรับดึงคะแนนของนักเรียนในวิชานั้น ๆ โดยจัดกลุ่มตาม competency
@@ -71,7 +86,7 @@ export const assignmentScoreRoutes = new Elysia({
       }),
       tags: ["AssignmentScore (TeacherRoutes)"],
       summary: "ดูคะแนนของนักเรียนในวิชานั้น ๆ โดยจัดกลุ่มตาม competency",
-    }
+    },
   )
 
   // Route สำหรับดึงคะแนน AssignmentScore ของนักเรียนรายคนใน teacherAssignmentId
@@ -85,5 +100,5 @@ export const assignmentScoreRoutes = new Elysia({
       }),
       tags: ["AssignmentScore (TeacherRoutes)"],
       summary: "ดูคะแนน AssignmentScore ของนักเรียนรายคนใน teacherAssignmentId",
-    }
+    },
   );

@@ -8,6 +8,7 @@ import {
   listAssignmentScoresByCompetency,
   getStudentScoresBySubjectGroupedByCompetency,
   getStudentAssignmentScoresByTeacherAssignment,
+  bulkCreateAssignmentScores,
 } from "../../services/teacher/assignmentScore.service";
 
 export const listAssignmentScoresController = async (ctx: Context) => {
@@ -67,9 +68,20 @@ export const deleteAssignmentScoreController = async (ctx: Context) => {
   }
 };
 
+export const bulkCreateAssignmentScoresController = async (ctx: Context) => {
+  try {
+    const result = await bulkCreateAssignmentScores(ctx.body);
+    ctx.set.status = 201;
+    return result;
+  } catch (e: any) {
+    ctx.set.status = 400;
+    return { error: e.message };
+  }
+};
+
 // ดึงคะแนน AssignmentScore ทั้งหมดที่เกี่ยวข้องกับ competencyId
 export const listAssignmentScoresByCompetencyController = async (
-  ctx: Context
+  ctx: Context,
 ) => {
   try {
     const competencyId = ctx.params.competencyId;
@@ -82,14 +94,14 @@ export const listAssignmentScoresByCompetencyController = async (
 
 // ดึงคะแนนของนักเรียนในวิชานั้น ๆ โดยจัดกลุ่มตาม competency
 export const getStudentScoresBySubjectGroupedByCompetencyController = async (
-  ctx: Context
+  ctx: Context,
 ) => {
   try {
     const studentId = ctx.params.studentId;
     const teacherAssignmentId = ctx.params.teacherAssignmentId;
     return await getStudentScoresBySubjectGroupedByCompetency(
       studentId,
-      teacherAssignmentId
+      teacherAssignmentId,
     );
   } catch (e: any) {
     ctx.set.status = 400;
@@ -99,14 +111,14 @@ export const getStudentScoresBySubjectGroupedByCompetencyController = async (
 
 // ดึงคะแนน AssignmentScore ของนักเรียนรายคนใน teacherAssignmentId
 export const getStudentAssignmentScoresByTeacherAssignmentController = async (
-  ctx: Context
+  ctx: Context,
 ) => {
   try {
     const studentId = ctx.params.studentId;
     const teacherAssignmentId = ctx.params.teacherAssignmentId;
     return await getStudentAssignmentScoresByTeacherAssignment(
       teacherAssignmentId,
-      studentId
+      studentId,
     );
   } catch (e: any) {
     ctx.set.status = 400;

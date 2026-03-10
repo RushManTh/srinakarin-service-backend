@@ -9,7 +9,11 @@ import {
 
 export const listTeacherAssignmentsController = async (ctx: Context) => {
   try {
-    return await listTeacherAssignments();
+    const { page, pageSize } = ctx.query;
+    return await listTeacherAssignments({
+      page: page ? Number(page) : 1,
+      pageSize: pageSize ? Number(pageSize) : 10,
+    });
   } catch (e: any) {
     ctx.set.status = 400;
     return { error: e.message };

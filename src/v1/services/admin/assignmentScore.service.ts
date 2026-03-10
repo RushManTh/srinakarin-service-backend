@@ -36,7 +36,7 @@ export async function deleteAssignmentScore(id: string) {
 export async function getStudentScoresBySubjectGroupedByCompetency(
   studentId: string,
   schoolSubjectId: string,
-  filters?: { academicYearId?: string; termId?: string }
+  filters?: { academicYearId?: string; termId?: string },
 ) {
   // หา TeacherAssignment ที่ตรงกับ schoolSubjectId และ filter
   const where: any = { schoolSubjectId };
@@ -146,7 +146,7 @@ export async function getStudentScoresBySubjectGroupedByCompetency(
   }));
 
   return result.sort((a, b) =>
-    (a.competencyCode || "").localeCompare(b.competencyCode || "")
+    (a.competencyCode || "").localeCompare(b.competencyCode || ""),
   );
 }
 
@@ -154,7 +154,7 @@ export async function getStudentScoresBySubjectGroupedByCompetency(
 export async function getStudentAssignmentScoresBySubject(
   studentId: string,
   schoolSubjectId: string,
-  filters?: { academicYearId?: string; termId?: string }
+  filters?: { academicYearId?: string; termId?: string },
 ) {
   // หา TeacherAssignment ที่ตรงกับ schoolSubjectId และ filter
   const where: any = { schoolSubjectId };
@@ -222,4 +222,100 @@ export async function getStudentAssignmentScoresBySubject(
       assignmentScoreFiles: true,
     },
   });
+}
+
+// รวมคะแนนของนักเรียนในวิชา แยกตามประเภท (คะแนนเก็บ, กลางภาค, ปลายภาค)
+// โดยหากมีหลายรอบการลงคะแนน จะเอาคะแนนจากรอบที่ลงล่าสุดเท่านั้น
+export async function getStudentTotalScoresBySubject(
+  studentId: string,
+  schoolSubjectId: string,
+  filters?: { academicYearId?: string; termId?: string },
+) {
+  // หา TeacherAssignment ที่ตรงกับ schoolSubjectId และ filter
+  const where: any = { schoolSubjectId };
+  if (filters?.academicYearId) {
+    where.academicYearId = filters.academicYearId;
+  }
+  if (filters?.termId) {
+    where.termId = filters.termId;
+  }
+
+  const teacherAssignments = await prisma.teacherAssignment.findMany({
+    where,
+  });
+
+  if (teacherAssignments.length === 0) {
+    return {
+      SCORE: 0,
+      MIDTERM: 0,
+      FINAL: 0,
+    };
+  }
+
+  // หา assignment ทั้งหมดที่เกี่ยวข้อง
+  const teacherAssignmentIds = teacherAssignments.map((ta) => ta.id);
+  const assignments = await prisma.assignment.findMany({
+    where: {
+      teacherAssignmentId: { in: teacherAssignmentIds },
+    },
+  });
+
+  if (assignments.length === 0) {
+    return {
+      SCORE: 0,
+      MIDTERM: 0,
+      FINAL: 0,
+    };
+  }
+
+  // จัดกลุ่ม assignments ตาม scoreType
+  const assignmentIdsByType: Record<string, string[]> = {
+    SCORE: [],
+    MIDTERM: [],
+    FINAL: [],
+  };
+
+  for (const a of assignments) {
+    if (assignmentIdsByType[a.scoreType]) {
+      assignmentIdsByType[a.scoreType].push(a.id);
+    }
+  }
+
+  // คำนวณคะแนนรวมแต่ละประเภท
+  const scores: Record<string, number> = { SCORE: 0, MIDTERM: 0, FINAL: 0 };
+
+  for (const type of ["SCORE", "MIDTERM", "FINAL"]) {
+    if (assignmentIdsByType[type].length > 0) {
+      let totalScore = 0;
+
+      // สำหรับแต่ละ assignment ในประเภทนี้ หาคะแนนรอบล่าสุดของนักเรียน
+      for (const assignmentId of assignmentIdsByType[type]) {
+        // หา attempt ล่าสุดที่นักเรียนคนนี้มีคะแนน
+        const latestScore = await prisma.assignmentScore.findFirst({
+          where: {
+            studentId: studentId,
+            assignmentScoreAttempt: {
+              assignmentId: assignmentId,
+            },
+          },
+          include: {
+            assignmentScoreAttempt: true,
+          },
+          orderBy: {
+            assignmentScoreAttempt: {
+              createdAt: "desc",
+            },
+          },
+        });
+
+        if (latestScore) {
+          totalScore += latestScore.score;
+        }
+      }
+
+      scores[type] = totalScore;
+    }
+  }
+
+  return scores;
 }

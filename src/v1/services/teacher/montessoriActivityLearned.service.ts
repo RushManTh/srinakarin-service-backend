@@ -135,7 +135,7 @@ export async function upsertMontessoriLearnedBatch(
     learnedAt?: Date | string | null;
     note?: string | null;
     markedByTeacherId?: string | null;
-  }>
+  }>,
 ) {
   if (!Array.isArray(payloads) || payloads.length === 0) return [];
   // Optional: validate student and activity ids in bulk if needed
@@ -161,7 +161,7 @@ export async function upsertMontessoriLearnedBatch(
         note: data.note,
         markedByTeacherId: data.markedByTeacherId ?? undefined,
       },
-    })
+    }),
   );
   return prisma.$transaction(ops);
 }
@@ -172,7 +172,7 @@ export async function toggleMontessoriLearnedBatch(
     activityId: string;
     note?: string | null;
     markedByTeacherId?: string | null;
-  }>
+  }>,
 ) {
   if (!Array.isArray(payloads) || payloads.length === 0) return [];
   const whereOr = payloads.map((p) => ({
@@ -184,7 +184,7 @@ export async function toggleMontessoriLearnedBatch(
   });
   const key = (s: string, a: string) => `${s}__${a}`;
   const map = new Map(
-    existing.map((e) => [key(e.studentId, e.activityId), e] as const)
+    existing.map((e) => [key(e.studentId, e.activityId), e] as const),
   );
 
   const ops = payloads.map((p) => {
@@ -264,7 +264,13 @@ export async function listLearnedByStudentAndSchoolSubject({
       activity: {
         topic: {
           subcategory: {
-            category: { schoolSubjectId },
+            category: {
+              schoolSubjects: {
+                some: {
+                  id: schoolSubjectId,
+                },
+              },
+            },
           },
         },
       },

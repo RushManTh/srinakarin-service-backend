@@ -7,6 +7,7 @@ import {
   deleteAssignmentScoreController,
   getStudentScoresBySubjectGroupedByCompetencyController,
   getStudentAssignmentScoresBySubjectController,
+  getStudentTotalScoresBySubjectController,
 } from "../../controllers/admin/assignmentScore.controller";
 
 export const assignmentScoreRoutes = new Elysia({
@@ -62,7 +63,7 @@ export const assignmentScoreRoutes = new Elysia({
       tags: ["AssignmentScore (AdminRoutes)"],
       summary:
         "ดูคะแนนของนักเรียนในวิชา จัดกลุ่มตาม Competency (สามารถกรองตามปีการศึกษาและเทอมได้)",
-    }
+    },
   )
   .get(
     "/students/:studentId/subjects/:schoolSubjectId/assignments",
@@ -79,5 +80,22 @@ export const assignmentScoreRoutes = new Elysia({
       tags: ["AssignmentScore (AdminRoutes)"],
       summary:
         "ดูคะแนน Assignment ทั้งหมดของนักเรียนในวิชา (สามารถกรองตามปีการศึกษาและเทอมได้)",
-    }
+    },
+  )
+  .get(
+    "/students/:studentId/subjects/:schoolSubjectId/total-scores",
+    getStudentTotalScoresBySubjectController,
+    {
+      params: t.Object({
+        studentId: t.String(),
+        schoolSubjectId: t.String(),
+      }),
+      query: t.Object({
+        academicYearId: t.Optional(t.String()),
+        termId: t.Optional(t.String()),
+      }),
+      tags: ["AssignmentScore (AdminRoutes)"],
+      summary:
+        "ดูคะแนนรวมของนักเรียนในวิชา แยกตามประเภท (SCORE, MIDTERM, FINAL) โดยเอาคะแนนจากรอบล่าสุดเท่านั้น",
+    },
   );

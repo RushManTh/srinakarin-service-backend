@@ -7,6 +7,7 @@ import {
   deleteAssignmentScore,
   getStudentScoresBySubjectGroupedByCompetency,
   getStudentAssignmentScoresBySubject,
+  getStudentTotalScoresBySubject,
 } from "../../services/admin/assignmentScore.service";
 
 export const listAssignmentScoresController = async (ctx: Context) => {
@@ -67,7 +68,7 @@ export const deleteAssignmentScoreController = async (ctx: Context) => {
 };
 
 export const getStudentScoresBySubjectGroupedByCompetencyController = async (
-  ctx: Context
+  ctx: Context,
 ) => {
   try {
     const studentId = ctx.params.studentId;
@@ -76,7 +77,7 @@ export const getStudentScoresBySubjectGroupedByCompetencyController = async (
     return await getStudentScoresBySubjectGroupedByCompetency(
       studentId,
       schoolSubjectId,
-      { academicYearId, termId }
+      { academicYearId, termId },
     );
   } catch (e: any) {
     ctx.set.status = 400;
@@ -85,7 +86,7 @@ export const getStudentScoresBySubjectGroupedByCompetencyController = async (
 };
 
 export const getStudentAssignmentScoresBySubjectController = async (
-  ctx: Context
+  ctx: Context,
 ) => {
   try {
     const studentId = ctx.params.studentId;
@@ -94,8 +95,25 @@ export const getStudentAssignmentScoresBySubjectController = async (
     return await getStudentAssignmentScoresBySubject(
       studentId,
       schoolSubjectId,
-      { academicYearId, termId }
+      { academicYearId, termId },
     );
+  } catch (e: any) {
+    ctx.set.status = 400;
+    return { error: e.message };
+  }
+};
+
+export const getStudentTotalScoresBySubjectController = async (
+  ctx: Context,
+) => {
+  try {
+    const studentId = ctx.params.studentId;
+    const schoolSubjectId = ctx.params.schoolSubjectId;
+    const { academicYearId, termId } = ctx.query;
+    return await getStudentTotalScoresBySubject(studentId, schoolSubjectId, {
+      academicYearId,
+      termId,
+    });
   } catch (e: any) {
     ctx.set.status = 400;
     return { error: e.message };

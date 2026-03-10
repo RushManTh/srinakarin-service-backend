@@ -2,7 +2,7 @@ import { prisma } from "../../models/prisma";
 
 export async function isTeacherAssignedToAssignment(
   assignmentId: string,
-  teacherId: string
+  teacherId: string,
 ) {
   // หา TeacherAssignment ที่มี assignmentId นี้
   const assignment = await prisma.assignment.findUnique({
@@ -69,6 +69,105 @@ export async function deleteAssignmentScore(id: string) {
   return prisma.assignmentScore.delete({ where: { id } });
 }
 
+// Bulk create assignment scores for multiple students
+export async function bulkCreateAssignmentScores(data: {
+  assignmentScoreAttemptId: string;
+  scores: Array<{
+    studentId: string;
+    score: number;
+    comment: string;
+  }>;
+}) {
+  const { assignmentScoreAttemptId, scores } = data;
+
+  // Validate that the attempt exists
+  const attempt = await prisma.assignmentScoreAttempt.findUnique({
+    where: { id: assignmentScoreAttemptId },
+    include: {
+      assignment: {
+        include: {
+          teacherAssignment: true,
+        },
+      },
+    },
+  });
+
+  if (!attempt) {
+    throw new Error("Assignment score attempt not found");
+  }
+
+  // Validate all students exist
+  const studentIds = scores.map((s) => s.studentId);
+  const existingStudents = await prisma.student.findMany({
+    where: { id: { in: studentIds } },
+    select: { id: true },
+  });
+
+  const existingStudentIds = new Set(existingStudents.map((s) => s.id));
+  const invalidStudentIds = studentIds.filter(
+    (id) => !existingStudentIds.has(id),
+  );
+
+  if (invalidStudentIds.length > 0) {
+    throw new Error(`Students not found: ${invalidStudentIds.join(", ")}`);
+  }
+
+  // Check for existing scores
+  const existingScores = await prisma.assignmentScore.findMany({
+    where: {
+      assignmentScoreAttemptId,
+      studentId: { in: studentIds },
+    },
+    select: { studentId: true },
+  });
+
+  const existingScoreStudentIds = new Set(
+    existingScores.map((s) => s.studentId),
+  );
+
+  // Filter out students who already have scores
+  const newScores = scores.filter(
+    (s) => !existingScoreStudentIds.has(s.studentId),
+  );
+
+  // Create new scores
+  const created = await prisma.assignmentScore.createMany({
+    data: newScores.map((s) => ({
+      assignmentScoreAttemptId,
+      studentId: s.studentId,
+      score: s.score,
+      comment: s.comment,
+    })),
+  });
+
+  // Fetch all created scores
+  const createdScores = await prisma.assignmentScore.findMany({
+    where: {
+      assignmentScoreAttemptId,
+      studentId: { in: newScores.map((s) => s.studentId) },
+    },
+    include: {
+      student: {
+        select: {
+          id: true,
+          studentCode: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  });
+
+  return {
+    success: true,
+    created: created.count,
+    skipped: existingScoreStudentIds.size,
+    total: scores.length,
+    scores: createdScores,
+    skippedStudentIds: Array.from(existingScoreStudentIds),
+  };
+}
+
 // List assignment scores by competencyId
 export async function listAssignmentScoresByCompetency(competencyId: string) {
   // หา assignmentId ทั้งหมดที่มี competencyId นี้
@@ -110,7 +209,7 @@ export async function listAssignmentScoresByCompetency(competencyId: string) {
 
 export async function getStudentScoresBySubjectGroupedByCompetency(
   studentId: string,
-  teacherAssignmentId: string
+  teacherAssignmentId: string,
 ) {
   // หา assignment ทั้งหมดที่เกี่ยวข้องกับ teacherAssignmentId
   const assignments = await prisma.assignment.findMany({
@@ -197,13 +296,13 @@ export async function getStudentScoresBySubjectGroupedByCompetency(
     maxScore: maxScoreMap[competencyId] || 0,
   }));
   return result.sort((a, b) =>
-    (a.competencyCode || "").localeCompare(b.competencyCode || "")
+    (a.competencyCode || "").localeCompare(b.competencyCode || ""),
   );
 }
 
 export async function getStudentAssignmentScoresByTeacherAssignment(
   teacherAssignmentId: string,
-  studentId: string
+  studentId: string,
 ) {
   // Find all assignments for the given teacherAssignmentId
   const assignments = await prisma.assignment.findMany({

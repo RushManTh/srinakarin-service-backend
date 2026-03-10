@@ -65,7 +65,7 @@ interface ScoreResult {
 
 // Calculate core competency score for a single student
 export async function calculateStudentCoreCompetencyScore(
-  params: CalculateParams
+  params: CalculateParams,
 ): Promise<ScoreResult> {
   const { studentId, coreCompetencyId, academicYearId, termId, levelId } =
     params;
@@ -111,8 +111,8 @@ export async function calculateStudentCoreCompetencyScore(
   if (Math.abs(totalWeight - 1.0) > 0.0001) {
     throw new Error(
       `Invalid weight configuration: sum is ${(totalWeight * 100).toFixed(
-        2
-      )}% instead of 100%`
+        2,
+      )}% instead of 100%`,
     );
   }
 
@@ -225,7 +225,7 @@ export async function calculateStudentCoreCompetencyScore(
   const levelInfo = await mapScoreToLevel(
     totalWeightedScore,
     coreCompetencyId,
-    levelId
+    levelId,
   );
 
   // Step 6: Get academic year and term names
@@ -304,7 +304,7 @@ export async function calculateClassroomCoreCompetencyScores(params: {
     } catch (error) {
       console.error(
         `Error calculating score for student ${student.id}:`,
-        error
+        error,
       );
       // Continue with other students
     }
@@ -337,7 +337,7 @@ export async function calculateClassroomCoreCompetencyScores(params: {
 export async function getCoreCompetencyScoreHistory(
   studentId: string,
   coreCompetencyId: string,
-  limit: number = 10
+  limit: number = 10,
 ) {
   // This would typically query a StudentCoreCompetencyScore cache table
   // For now, we'll return a placeholder structure
@@ -510,6 +510,152 @@ export async function calculateAllCoreCompetencyScores(params: {
   };
 }
 
+// Calculate all core competency scores for all students in a classroom
+export async function calculateClassroomAllCoreCompetencyScores(params: {
+  classroomId: string;
+  academicYearId: string;
+  termId: string;
+  levelId: string;
+}) {
+  const { classroomId, academicYearId, termId, levelId } = params;
+
+  // Get classroom info with students
+  const classroom = await prisma.classroom.findUnique({
+    where: { id: classroomId },
+    include: {
+      students: {
+        where: { isActive: true },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          studentLevel: {
+            include: {
+              level: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!classroom) {
+    throw new Error("Classroom not found");
+  }
+
+  if (classroom.students.length === 0) {
+    throw new Error("No active students in this classroom");
+  }
+
+  // Get academic year and term info
+  const academicYear = await prisma.academicYear.findUnique({
+    where: { id: academicYearId },
+    select: { year: true },
+  });
+
+  const term = await prisma.term.findUnique({
+    where: { id: termId },
+    select: { name: true },
+  });
+
+  // Get all core competencies
+  const coreCompetencies = await prisma.coreCompetency.findMany({
+    orderBy: { name: "asc" },
+  });
+
+  if (coreCompetencies.length === 0) {
+    throw new Error("No core competencies found");
+  }
+
+  const studentResults: any[] = [];
+  let totalSuccessfulCalculations = 0;
+  let totalFailedCalculations = 0;
+
+  // Calculate all core competency scores for each student
+  for (const student of classroom.students) {
+    try {
+      const studentScores = await calculateAllCoreCompetencyScores({
+        studentId: student.id,
+        academicYearId,
+        termId,
+        levelId,
+      });
+
+      studentResults.push(studentScores);
+      totalSuccessfulCalculations += studentScores.successfulCalculations;
+      totalFailedCalculations += studentScores.failedCalculations;
+    } catch (error: any) {
+      console.error(
+        `Error calculating scores for student ${student.id}:`,
+        error,
+      );
+      // Continue with other students
+      studentResults.push({
+        studentId: student.id,
+        studentName: `${student.firstName} ${student.lastName}`,
+        error: error.message,
+        coreCompetencyScores: [],
+      });
+    }
+  }
+
+  // Calculate classroom statistics per core competency
+  const competencyStatistics = coreCompetencies.map((competency) => {
+    const scores: number[] = [];
+    const levels: number[] = [];
+
+    studentResults.forEach((studentResult: any) => {
+      if (studentResult.coreCompetencyScores) {
+        const competencyScore = studentResult.coreCompetencyScores.find(
+          (cs: any) => cs.coreCompetencyId === competency.id,
+        );
+
+        if (competencyScore) {
+          scores.push(competencyScore.finalScore);
+          levels.push(competencyScore.finalLevel);
+        }
+      }
+    });
+
+    const averageScore =
+      scores.length > 0
+        ? scores.reduce((sum, s) => sum + s, 0) / scores.length
+        : 0;
+    const averageLevel =
+      levels.length > 0
+        ? Math.round(levels.reduce((sum, l) => sum + l, 0) / levels.length)
+        : 0;
+    const highestScore = scores.length > 0 ? Math.max(...scores) : 0;
+    const lowestScore = scores.length > 0 ? Math.min(...scores) : 0;
+
+    return {
+      coreCompetencyId: competency.id,
+      coreCompetencyCode: competency.code,
+      coreCompetencyName: competency.name,
+      averageScore: parseFloat(averageScore.toFixed(2)),
+      averageLevel,
+      highestScore: parseFloat(highestScore.toFixed(2)),
+      lowestScore: parseFloat(lowestScore.toFixed(2)),
+      studentCount: scores.length,
+    };
+  });
+
+  return {
+    classroomId: classroom.id,
+    classroomName: classroom.name,
+    academicYear: academicYear?.year || "N/A",
+    term: term?.name || "N/A",
+    levelId,
+    calculatedAt: new Date(),
+    totalStudents: classroom.students.length,
+    totalCoreCompetencies: coreCompetencies.length,
+    totalSuccessfulCalculations,
+    totalFailedCalculations,
+    studentScores: studentResults,
+    competencyStatistics,
+  };
+}
+
 // Helper: Map score to CoreCompetencyLevel
 // This function dynamically maps scores based on minScore/maxScore defined in the database
 // Supports unlimited number of levels (not just 4)
@@ -517,7 +663,7 @@ export async function calculateAllCoreCompetencyScores(params: {
 async function mapScoreToLevel(
   score: number,
   coreCompetencyId: string,
-  levelId?: string // studentLevel.levelId (e.g., "level-p1-3" or "level-p4-6")
+  levelId?: string, // studentLevel.levelId (e.g., "level-p1-3" or "level-p4-6")
 ) {
   const where: any = {
     coreCompetencyId,

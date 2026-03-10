@@ -46,7 +46,7 @@ export async function getTeacherAssignmentById(id: string, teacherId?: string) {
 
 // ดึงข้อมูลนักเรียนที่ลงทะเบียนในวิชาตาม TeacherAssignment พร้อมคะแนนรวมแต่ละประเภท
 export async function getStudentsWithScoresByTeacherAssignment(
-  teacherAssignmentId: string
+  teacherAssignmentId: string,
 ) {
   // ดึง TeacherAssignment
   const ta = await prisma.teacherAssignment.findUnique({
@@ -93,29 +93,50 @@ export async function getStudentsWithScoresByTeacherAssignment(
     }
   }
 
-  // ดึงคะแนน AssignmentScore ของนักเรียนแต่ละคน
+  // ดึงคะแนน AssignmentScore ของนักเรียนแต่ละคน (เฉพาะรอบล่าสุดของแต่ละ assignment)
   const result = await Promise.all(
     enrollments.map(async (enroll) => {
       const scores: Record<string, number> = { SCORE: 0, MIDTERM: 0, FINAL: 0 };
+
+      // คำนวณคะแนนแต่ละประเภทสำหรับนักเรียนคนนี้
       for (const type of ["SCORE", "MIDTERM", "FINAL"]) {
         if (assignmentIdsByType[type].length > 0) {
-          const scoreSum = await prisma.assignmentScore.aggregate({
-            where: {
-              studentId: enroll.studentId,
-              assignmentScoreAttempt: {
-                assignmentId: { in: assignmentIdsByType[type] },
+          let totalScore = 0;
+
+          // สำหรับแต่ละ assignment ในประเภทนี้ หาคะแนนรอบล่าสุดของนักเรียนคนนี้
+          for (const assignmentId of assignmentIdsByType[type]) {
+            // หา attempt ล่าสุดที่นักเรียนคนนี้มีคะแนน
+            const latestScore = await prisma.assignmentScore.findFirst({
+              where: {
+                studentId: enroll.studentId,
+                assignmentScoreAttempt: {
+                  assignmentId: assignmentId,
+                },
               },
-            },
-            _sum: { score: true },
-          });
-          scores[type] = scoreSum._sum.score || 0;
+              include: {
+                assignmentScoreAttempt: true,
+              },
+              orderBy: {
+                assignmentScoreAttempt: {
+                  createdAt: "desc",
+                },
+              },
+            });
+
+            if (latestScore) {
+              totalScore += latestScore.score;
+            }
+          }
+
+          scores[type] = totalScore;
         }
       }
+
       return {
         student: enroll.student,
         scores,
       };
-    })
+    }),
   );
 
   return result;

@@ -6,6 +6,7 @@ import { userRoutes } from "./routes/auth/user.route";
 import { indexAdminRoutes } from "./routes/index.admin.route";
 import { indexTeacherRoutes } from "./routes/index.teacher.route";
 import { fileRoutes } from "./routes/file/file.route";
+import { kioskAttendancePublicRoutes } from "./routes/public/kioskAttendancePublic.route";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dsjfksnbskbvbsvksbvsk";
 
@@ -16,7 +17,8 @@ export const v1App = new Elysia({ prefix: "/api/v1" })
       .use(cookie())
       .state("user", "")
       .use(indexAdminRoutes)
-      .use(indexTeacherRoutes)
+      .use(indexTeacherRoutes),
   )
   .use(fileRoutes)
-  .use(userRoutes);
+  .use(userRoutes)
+  .use(kioskAttendancePublicRoutes);

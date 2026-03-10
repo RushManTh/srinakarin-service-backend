@@ -35,6 +35,7 @@ import { coreCompetencyMappingRoute } from "./admin/coreCompetencyMapping.route"
 import { coreCompetencyWeightRoute } from "./admin/coreCompetencyWeight.route";
 import { coreCompetencyScoreRoute } from "./admin/coreCompetencyScore.route";
 import { dashboardRoute } from "./admin/dashboard.route";
+import { kioskAttendanceRoutes } from "./admin/kioskAttendance.route";
 
 export const indexAdminRoutes = new Elysia({ prefix: "/admin" }).guard(
   { beforeHandle: requirePermission(["admin"]) },
@@ -75,4 +76,5 @@ export const indexAdminRoutes = new Elysia({ prefix: "/admin" }).guard(
       .use(coreCompetencyWeightRoute)
       .use(coreCompetencyScoreRoute)
       .use(dashboardRoute)
+      .use(kioskAttendanceRoutes),
 );
