@@ -6,7 +6,7 @@ import { userRoutes } from "./routes/auth/user.route";
 import { indexAdminRoutes } from "./routes/index.admin.route";
 import { indexTeacherRoutes } from "./routes/index.teacher.route";
 import { fileRoutes } from "./routes/file/file.route";
-import { kioskAttendancePublicRoutes } from "./routes/public/kioskAttendancePublic.route";
+import { kioskAttendancePublicRoutes } from "./routes/parent/kioskAttendancePublic.route";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dsjfksnbskbvbsvksbvsk";
 
